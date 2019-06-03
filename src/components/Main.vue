@@ -1,11 +1,17 @@
 <template>
   <div>
     <h1>traQ タグソートアプリ</h1>
-    <p>traQのタグをソートします。ソートするたびにリクエストがタグの数*3個飛ぶのであまりたくさんは使わないでください。</p>
-    <draggable v-model="tags" element="ul" :options="{animation:300}">
+    <p>traQのタグをソートします。ソートするたびにリクエストがタグの数*4個飛ぶのであまりたくさんは使わないでください。</p>
+    <draggable v-if="!isSending" v-model="tags" element="ul" :options="{animation:300}">
       <li v-for="tag in tags" :key="tag.tagId">{{ tag.tag }}</li>
     </draggable>
-    <button>ソート！</button>
+    <button v-if="!isSending" v-on:click="updateTag">ソート！</button>
+    <div v-if="isSending">
+      <p>更新中…: {{ countNum }}/{{ tags.length }}</p>
+    </div>
+    <div v-if="isComplete">
+      <p>ソートが完了しました！</p>
+    </div>
   </div>
 </template>
 
@@ -22,7 +28,10 @@ export default {
   data() {
     return {
       tags: [],
-      me: {}
+      me: {},
+      isSending: false,
+      isComplete: false,
+      countNum: 0
     };
   },
   async created() {
@@ -54,13 +63,14 @@ export default {
     }
   },
   async mounted() {
-    this.me = await api.getMe();
+    const res = await api.getMe();
+    this.me = res.data;
     await this.getTags();
   },
   methods: {
     async getTags() {
       try {
-        const res = await api.getUserTags(this.me.data.userId);
+        const res = await api.getUserTags(this.me.userId);
         this.tags = res.data;
       } catch (e) {
         // eslint-disable-next-line
@@ -81,6 +91,39 @@ export default {
         vars[array[0]] = array[1];
       }
       return vars;
+    },
+
+    async updateTag() {
+      /* eslint-disable */
+      this.isSending = true;
+      const userId = this.me.userId;
+      for (const tag of this.tags) {
+        const tagId = tag.tagId;
+        if (tag.isLocked) {
+          await api.unlockTag(userId, tagId).catch(e => {
+            console.log(`unlock error: ${e}`);
+            return;
+          });
+        }
+        await api.deleteTag(userId, tagId).catch(e => {
+          console.log(`delete error: ${e}`);
+          return;
+        });
+
+        await api.addTag(userId, tag.tag).catch(e => {
+          console.log(`add error: ${e}`);
+          return;
+        });
+
+        if (tag.isLocked) {
+          await api.lockTag(userId, tagId).catch(e => {
+            console.log(`lock error: ${e}`);
+            return;
+          });
+        }
+        this.countNum++;
+      }
+      this.isComplete = true;
     }
   }
 };

@@ -49,25 +49,25 @@ const api = {
     return axios.get(`/users/${userId}/tags`)
   },
 
-  addTag: function (userId, tagName) {
-    return axios.post(`/users/${userId}/tags`, { tag: tagName })
+  addTag: async function (userId, tagName) {
+    return await axios.post(`/users/${userId}/tags`, { tag: tagName })
   },
 
-  deleteTag: function (userId, tagId) {
-    return axios.delete(`/users/${userId}/tags/${tagId}`)
+  deleteTag: async function (userId, tagId) {
+    return await axios.delete(`/users/${userId}/tags/${tagId}`)
   },
 
-  lockTag: function (userId, tagId) {
-    return patchTag(userId, tagId, true)
+  lockTag: async function (userId, tagId) {
+    return await patchTag(userId, tagId, true)
   },
 
-  unlockTag: function (userId, tagId) {
-    return patchTag(userId, tagId, false)
+  unlockTag: async function (userId, tagId) {
+    return await patchTag(userId, tagId, false)
   }
 }
 
-function patchTag(userId, tagId, isLocked) {
-  return axios.patch(`/users/${userId}/tags/${tagId}`, { isLocked: isLocked })
+async function patchTag(userId, tagId, isLocked) {
+  return await axios.patch(`/users/${userId}/tags/${tagId}`, { isLocked: isLocked })
 
 }
 
