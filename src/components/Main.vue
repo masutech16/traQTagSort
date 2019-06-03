@@ -39,6 +39,7 @@ export default {
       const codeVerifier = localStorage.getItem(`login-code-verifier-${state}`);
       if (!code || !codeVerifier) {
         redirectAuthorizationEndpoint();
+        return;
       }
 
       try {
@@ -48,8 +49,9 @@ export default {
         // eslint-disable-next-line
         console.error(e);
       }
+    } else {
+      redirectAuthorizationEndpoint();
     }
-    redirectAuthorizationEndpoint();
   },
   async mounted() {
     await this.getTags();
