@@ -2,7 +2,6 @@ const b64Chars = { '+': '-', '/': '_', '=': '' }
 
 const validChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
 
-
 export function randomString(length) {
   let array = new Uint8Array(length)
   window.crypto.getRandomValues(array)

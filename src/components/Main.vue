@@ -1,24 +1,24 @@
 <template>
   <div>
-    <div v-for="tag in tags" :key="tag.tagId">
-      <li>{{ tag.tag }}</li>
-      <li>{{ tag.isLocked }}</li>
-    </div>
-    {{ me }}
+    <h1>traQ タグソートアプリ</h1>
+    <p>traQのタグをソートします。ソートするたびにリクエストがタグの数*3個飛ぶのであまりたくさんは使わないでください。</p>
+    <draggable v-model="tags" element="ul" :options="{animation:300}">
+      <li v-for="tag in tags" :key="tag.tagId">{{ tag.tag }}</li>
+    </draggable>
+    <button>ソート！</button>
   </div>
 </template>
 
 
 
 <script>
-import {
-  getMe,
-  redirectAuthorizationEndpoint,
-  fetchAuthToken,
-  setAuthToken
-} from "../api";
+import api from "../api";
+import draggable from "vuedraggable";
 export default {
-  name: "HelloWorld",
+  name: "Main",
+  components: {
+    draggable
+  },
   data() {
     return {
       tags: [],
@@ -28,7 +28,7 @@ export default {
   async created() {
     const token = localStorage.getItem("accessToken");
     if (token) {
-      setAuthToken(token);
+      api.setAuthToken(token);
       return;
     }
 
@@ -38,29 +38,30 @@ export default {
       const state = params["state"];
       const codeVerifier = localStorage.getItem(`login-code-verifier-${state}`);
       if (!code || !codeVerifier) {
-        redirectAuthorizationEndpoint();
+        api.redirectAuthorizationEndpoint();
         return;
       }
 
       try {
-        const res = await fetchAuthToken(code, codeVerifier);
+        const res = await api.fetchAuthToken(code, codeVerifier);
         localStorage.setItem("accessToken", res.data.access_token);
       } catch (e) {
         // eslint-disable-next-line
         console.error(e);
       }
     } else {
-      redirectAuthorizationEndpoint();
+      api.redirectAuthorizationEndpoint();
     }
   },
   async mounted() {
+    this.me = await api.getMe();
     await this.getTags();
   },
   methods: {
     async getTags() {
       try {
-        const res = await getMe();
-        this.me = res;
+        const res = await api.getUserTags(this.me.data.userId);
+        this.tags = res.data;
       } catch (e) {
         // eslint-disable-next-line
         console.error(e);
