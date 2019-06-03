@@ -1,7 +1,7 @@
 <template>
   <div>
     <h1>traQ タグソートアプリ</h1>
-    <p>traQのタグをソートします。ソートするたびにリクエストがタグの数*4個飛ぶのであまりたくさんは使わないでください。</p>
+    <p>traQのタグをソートします。ドラッグで動かせます。下のボタンを押すたびにリクエストがタグの数*4個飛ぶのであまりたくさんは使わないでください。</p>
     <draggable v-if="!isSending" v-model="tags" element="ul" :options="{animation:300}">
       <li v-for="tag in tags" :key="tag.tagId">{{ tag.tag }}</li>
     </draggable>
@@ -54,6 +54,7 @@ export default {
       try {
         const res = await api.fetchAuthToken(code, codeVerifier);
         localStorage.setItem("accessToken", res.data.access_token);
+        location.href = location.origin;
       } catch (e) {
         // eslint-disable-next-line
         console.error(e);
